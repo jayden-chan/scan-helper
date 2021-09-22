@@ -63,72 +63,91 @@ async function main() {
       state[parts[0]] = parts[1];
       rl.prompt();
       return;
-    } else {
-      const parts = line.split(" ").map((p) => p.trim());
-      const command = parts[0];
-      if (!command) {
-        console.log("specify a command");
+    }
+
+    const parts = line.split(" ").map((p) => p.trim());
+    const command = parts[0];
+
+    if (!command) {
+      console.log("specify a command");
+      rl.prompt();
+      return;
+    }
+
+    switch (command) {
+      case "print":
+        console.log(JSON.stringify(state, null, 2));
         rl.prompt();
-        return;
-      }
+        break;
 
-      switch (command) {
-        case "print":
-          console.log(JSON.stringify(state, null, 2));
+      case "new":
+        if (parts[1]) {
+          state.name = parts[1];
           rl.prompt();
-          break;
-        case "new":
-          if (parts[1]) {
-            state.name = parts[1];
-            rl.prompt();
-          } else {
-            rl.write("name >>> ");
-          }
-          state.numscans = "0";
-          break;
-        case "course":
-          if (parts[1]) {
-            state.course = parts[1];
-            rl.prompt();
-          } else {
-            rl.write("course >>> ");
-          }
-          break;
-        case "scan":
-          await run("mkdir", ["-p", `out/${state.course}/${state.name}`]);
-          await run("scanimage", [
-            "--device",
-            "epkowa:interpreter:001:002",
-            "--format=png",
-            "--output-file",
-            `out/${state.course}/${state.name}/${state.numscans}.png`,
-            "--x-resolution",
-            "200",
-            "--y-resolution",
-            "200",
-            "--progress",
-            "--scan-area",
-            "Letter",
-          ]);
-          state.numscans = `${Number(state.numscans) + 1}`;
-          rl.prompt();
-          break;
+        } else {
+          rl.write("name >>> ");
+        }
+        state.numscans = "0";
+        break;
 
-        case "save":
-          const inputs = [...Array(Number(state.numscans)).keys()].map(
-            (i) => `out/${state.course}/${state.name}/${i}.png`
-          );
-          await run("img2pdf", [
-            ...inputs,
-            "-S",
-            "Letter",
-            "-o",
-            `out/${state.course}/${state.name}.pdf`,
-          ]);
-          await run("rm", ["-r", `out/${state.course}/${state.name}`]);
-        default:
+      case "course":
+        if (parts[1]) {
+          state.course = parts[1];
           rl.prompt();
-      }
+        } else {
+          rl.write("course >>> ");
+        }
+        break;
+
+      case "scan":
+        if (!state.course) {
+          console.log("no course");
+          rl.prompt();
+          return;
+        }
+
+        if (!state.name) {
+          console.log("no course");
+          rl.prompt();
+          return;
+        }
+
+        await run("mkdir", ["-p", `out/${state.course}/${state.name}`]);
+        await run("scanimage", [
+          "--device",
+          "epkowa:interpreter:001:002",
+          "--format=png",
+          "--output-file",
+          `out/${state.course}/${state.name}/${state.numscans}.png`,
+          "--x-resolution",
+          "200",
+          "--y-resolution",
+          "200",
+          "--progress",
+          "--scan-area",
+          "Letter",
+        ]);
+        state.numscans = `${Number(state.numscans) + 1}`;
+        rl.prompt();
+        break;
+
+      case "save":
+        const inputs = [...Array(Number(state.numscans)).keys()].map(
+          (i) => `out/${state.course}/${state.name}/${i}.png`
+        );
+        await run("img2pdf", [
+          ...inputs,
+          "-S",
+          "Letter",
+          "-o",
+          `out/${state.course}/${state.name}.pdf`,
+        ]);
+        await run("rm", ["-r", `out/${state.course}/${state.name}`]);
+        rl.prompt();
+        break;
+
+      default:
+        rl.prompt();
     }
   });
 }
