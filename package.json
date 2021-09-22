@@ -1,0 +1,17 @@
+{
+  "name": "scan-helper",
+  "version": "1.0.0",
+  "description": "REPL for making document scanning more efficient",
+  "main": "dist/index.js",
+  "author": "Jayden Chan <jaydencn7@gmail.com>",
+  "license": "GPL-3.0-only",
+  "private": false,
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc -w"
+  },
+  "devDependencies": {
+    "@types/node": "^16.9.6",
+    "typescript": "^4.4.3"
+  }
+}
