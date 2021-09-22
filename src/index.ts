@@ -81,21 +81,31 @@ async function main() {
         break;
 
       case "new":
-        if (parts[1]) {
-          state.name = parts[1];
+        if (state.unsaved === "true") {
+          console.log("error: unsaved changes");
           rl.prompt();
         } else {
-          rl.write("name >>> ");
+          if (parts[1]) {
+            state.name = parts[1];
+            rl.prompt();
+          } else {
+            rl.write("name >>> ");
+          }
+          state.numscans = "0";
         }
-        state.numscans = "0";
         break;
 
       case "course":
-        if (parts[1]) {
-          state.course = parts[1];
+        if (state.unsaved === "true") {
+          console.log("error: unsaved changes");
           rl.prompt();
         } else {
-          rl.write("course >>> ");
+          if (parts[1]) {
+            state.course = parts[1];
+            rl.prompt();
+          } else {
+            rl.write("course >>> ");
+          }
         }
         break;
 
@@ -128,22 +138,29 @@ async function main() {
           "Letter",
         ]);
         state.numscans = `${Number(state.numscans) + 1}`;
+        state.unsaved = "true";
         rl.prompt();
         break;
 
       case "save":
-        const inputs = [...Array(Number(state.numscans)).keys()].map(
-          (i) => `out/${state.course}/${state.name}/${i}.png`
-        );
-        await run("img2pdf", [
-          ...inputs,
-          "-S",
-          "Letter",
-          "-o",
-          `out/${state.course}/${state.name}.pdf`,
-        ]);
-        await run("rm", ["-r", `out/${state.course}/${state.name}`]);
-        rl.prompt();
+        if (Number(state.numscans) === 0) {
+          console.log("error: no scans");
+          rl.prompt();
+        } else {
+          const inputs = [...Array(Number(state.numscans)).keys()].map(
+            (i) => `out/${state.course}/${state.name}/${i}.png`
+          );
+          await run("img2pdf", [
+            ...inputs,
+            "-S",
+            "Letter",
+            "-o",
+            `out/${state.course}/${state.name}.pdf`,
+          ]);
+          await run("rm", ["-r", `out/${state.course}/${state.name}`]);
+          state.unsaved = "false";
+          rl.prompt();
+        }
         break;
 
       default:
