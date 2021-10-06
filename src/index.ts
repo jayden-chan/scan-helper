@@ -1,5 +1,6 @@
 import * as readline from "readline";
 import { execFile, spawn } from "child_process";
+import { stat } from "fs/promises";
 
 const EXIT_KEYWORDS = [
   "quit",
@@ -122,10 +123,21 @@ async function main() {
           return;
         }
 
+        try {
+          const stats = await stat(`out/${state.course}/${state.name}.pdf`);
+          if (stats.isFile()) {
+            console.log(
+              `ERROR: File out/${state.course}/${state.name}.pdf exists already`
+            );
+            rl.prompt();
+            return;
+          }
+        } catch (_e) {}
+
         await run("mkdir", ["-p", `out/${state.course}/${state.name}`]);
         await run("scanimage", [
           "--device",
-          "epkowa:interpreter:001:002",
+          "epkowa:interpreter:001:005",
           "--format=png",
           "--output-file",
           `out/${state.course}/${state.name}/${state.numscans}.png`,
@@ -164,6 +176,7 @@ async function main() {
         break;
 
       default:
+        console.log(`Invalid command ${command}`);
         rl.prompt();
     }
   });
