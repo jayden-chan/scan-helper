@@ -43,7 +43,7 @@ async function run(command: string, args: string[]): Promise<void> {
   });
 }
 
-async function main() {
+async function repl() {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -180,6 +180,27 @@ async function main() {
         rl.prompt();
     }
   });
+}
+
+async function main() {
+  if (process.argv[2] === "single") {
+    await run("scanimage", [
+      "--device",
+      "epkowa:interpreter:001:005",
+      "--format=png",
+      "--output-file",
+      process.argv[3],
+      "--x-resolution",
+      "200",
+      "--y-resolution",
+      "200",
+      "--progress",
+      "--scan-area",
+      "Letter",
+    ]);
+  } else {
+    await repl();
+  }
 }
 
 main();
