@@ -1,6 +1,6 @@
-import * as readline from "readline";
-import { execFile, spawn } from "child_process";
+import { spawn } from "child_process";
 import { stat } from "fs/promises";
+import * as readline from "readline";
 
 const EXIT_KEYWORDS = [
   "quit",
@@ -19,6 +19,7 @@ const state: Record<string, string> = {
 };
 
 const DEBUG = process.env.VERBOSE === "1";
+const DEVICE = "epkowa:interpreter:001:018";
 
 async function run(command: string, args: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -137,14 +138,14 @@ async function repl() {
         await run("mkdir", ["-p", `out/${state.course}/${state.name}`]);
         await run("scanimage", [
           "--device",
-          "epkowa:interpreter:001:005",
+          DEVICE,
           "--format=png",
           "--output-file",
           `out/${state.course}/${state.name}/${state.numscans}.png`,
           "--x-resolution",
-          "200",
+          "300",
           "--y-resolution",
-          "200",
+          "300",
           "--progress",
           "--scan-area",
           "Letter",
@@ -183,17 +184,31 @@ async function repl() {
 }
 
 async function main() {
-  if (process.argv[2] === "single") {
+  const command = process.argv[2];
+  if (command === "single") {
+    const args = process.argv.slice(3);
+
+    if (args[0] === "--help") {
+      console.log(
+        `DEVICE=epkowa:interpreter:XXX:XXX nodes dist/index.js single ./output-file.png 200|600`
+      );
+      return;
+    }
+
+    if (!process.env.DEVICE) {
+      throw new Error("DEVICE env var isn't set");
+    }
+
     await run("scanimage", [
       "--device",
-      "epkowa:interpreter:001:005",
+      process.env.DEVICE,
       "--format=png",
       "--output-file",
-      process.argv[3],
+      args[0],
       "--x-resolution",
-      "200",
+      args[1],
       "--y-resolution",
-      "200",
+      args[1],
       "--progress",
       "--scan-area",
       "Letter",
